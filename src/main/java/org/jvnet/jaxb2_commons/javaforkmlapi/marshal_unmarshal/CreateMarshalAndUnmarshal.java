@@ -806,6 +806,9 @@ public class CreateMarshalAndUnmarshal extends Command {
 		unmarshalFromKMZ.javadoc().add("Similar to the other unmarshal methods\n\n");
 		unmarshalFromKMZ.javadoc().add("with the exception that it transforms a KMZ-file into a graph of Java objects. \n");	
 		unmarshalFromKMZ._throws(IOException.class);
+    unmarshalFromKMZ._throws( SAXException.class );
+    unmarshalFromKMZ._throws( JAXBException.class );
+    unmarshalFromKMZ._throws( ParserConfigurationException.class );
 		final JVar varFile = unmarshalFromKMZ.param(fileClass, "file");
 		varFile.annotate(NotNull.class);
 		final JVar varEMPTY_KML_ARRAY = unmarshalFromKMZ.body().decl(kmlClass.array(), "EMPTY_KML_ARRAY", JExpr.direct("new Kml[0]"));// JExpr._new(kmlClass.array().)..arg("0"));
@@ -866,19 +869,17 @@ public class CreateMarshalAndUnmarshal extends Command {
 		    "with the exception that it transforms a " + invokeMarshalWith.name() + " into a graph of Java objects. \n");
 		generateUnMarshallerFromString.javadoc().trimToSize();
 		final JVar stringunmarshallVar = generateUnMarshallerFromString.param(JMod.FINAL, invokeMarshalWith, "content");
+    generateUnMarshallerFromString._throws( SAXException.class );
+    generateUnMarshallerFromString._throws( JAXBException.class );
+    generateUnMarshallerFromString._throws( ParserConfigurationException.class );
 
-		final JTryBlock tryStringBlock = generateUnMarshallerFromString.body()._try();
-		final JVar localUnmarshaller = tryStringBlock.body().decl(jaxbUnmarshallerClass, "unmarshaller",
+    final JVar localUnmarshaller = generateUnMarshallerFromString.body().decl( jaxbUnmarshallerClass, "unmarshaller",
 		    jaxbContextClass.boxify().staticInvoke("newInstance").arg(JExpr.direct("Kml.class")).invoke("createUnmarshaller"));
 		
-		final JVar inputsource = tryStringBlock.body().decl(inputsourceClass, "input", JExpr._new(inputsourceClass).arg(stringunmarshallVar));
-		final JVar saxsource = tryStringBlock.body().decl(saxsourceClass, "saxSource", JExpr._new(saxsourceClass).arg(JExpr._new(namespaceFilterXMLReaderclass).arg(JExpr.FALSE)).arg(inputsource));
-		final JVar decl = tryStringBlock.body().decl(kmlClass, "jaxbRootElement", JExpr.cast(kmlClass, JExpr.invoke(localUnmarshaller, "unmarshal").arg(saxsource)));
-		tryStringBlock.body()._return(decl);
-		tryStringBlock._catch(saxExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		tryStringBlock._catch(parserConfigurationExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		tryStringBlock._catch(jaxbExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		generateUnMarshallerFromString.body()._return(JExpr._null());		
+    final JVar inputsource = generateUnMarshallerFromString.body().decl( inputsourceClass, "input", JExpr._new( inputsourceClass ).arg( stringunmarshallVar ) );
+    final JVar saxsource = generateUnMarshallerFromString.body().decl( saxsourceClass, "saxSource", JExpr._new( saxsourceClass ).arg( JExpr._new( namespaceFilterXMLReaderclass ).arg( JExpr.FALSE ) ).arg( inputsource ) );
+    final JVar decl = generateUnMarshallerFromString.body().decl( kmlClass, "jaxbRootElement", JExpr.cast( kmlClass, JExpr.invoke( localUnmarshaller, "unmarshal" ).arg( saxsource ) ) );
+    generateUnMarshallerFromString.body()._return( decl );
 	}
 
 	private void generateUnmarshalMethodFromString(final ClassOutlineImpl cc, final JType invokeMarshalWith) {
@@ -887,20 +888,19 @@ public class CreateMarshalAndUnmarshal extends Command {
 		generateUnMarshallerFromString.javadoc().add("Similar to the other unmarshal methods \n\n");
 		generateUnMarshallerFromString.javadoc().add("with the exception that it transforms a String into a graph of Java objects. \n");
 		generateUnMarshallerFromString.javadoc().trimToSize();
+    generateUnMarshallerFromString._throws( SAXException.class );
+    generateUnMarshallerFromString._throws( JAXBException.class );
+    generateUnMarshallerFromString._throws( ParserConfigurationException.class );
+
 		final JVar stringunmarshallVar = generateUnMarshallerFromString.param(JMod.FINAL, stringClass, "content");
 
-		final JTryBlock tryStringBlock = generateUnMarshallerFromString.body()._try();
-		final JVar localUnmarshaller = tryStringBlock.body().decl(jaxbUnmarshallerClass, "unmarshaller",
+    final JVar localUnmarshaller = generateUnMarshallerFromString.body().decl( jaxbUnmarshallerClass, "unmarshaller",
 		    jaxbContextClass.boxify().staticInvoke("newInstance").arg(JExpr.direct("Kml.class")).invoke("createUnmarshaller"));
 		
-		final JVar inputsource = tryStringBlock.body().decl(inputsourceClass, "input", JExpr._new(inputsourceClass).arg(JExpr._new(stringReaderClass).arg(stringunmarshallVar)));
-		final JVar saxsource = tryStringBlock.body().decl(saxsourceClass, "saxSource", JExpr._new(saxsourceClass).arg(JExpr._new(namespaceFilterXMLReaderclass).arg(JExpr.FALSE)).arg(inputsource));
-		final JVar decl = tryStringBlock.body().decl(kmlClass, "jaxbRootElement", JExpr.cast(kmlClass, JExpr.invoke(localUnmarshaller, "unmarshal").arg(saxsource)));
-		tryStringBlock.body()._return(decl);
-		tryStringBlock._catch(saxExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		tryStringBlock._catch(parserConfigurationExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		tryStringBlock._catch(jaxbExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		generateUnMarshallerFromString.body()._return(JExpr._null());		
+    final JVar inputsource = generateUnMarshallerFromString.body().decl( inputsourceClass, "input", JExpr._new( inputsourceClass ).arg( JExpr._new( stringReaderClass ).arg( stringunmarshallVar ) ) );
+    final JVar saxsource = generateUnMarshallerFromString.body().decl( saxsourceClass, "saxSource", JExpr._new( saxsourceClass ).arg( JExpr._new( namespaceFilterXMLReaderclass ).arg( JExpr.FALSE ) ).arg( inputsource ) );
+    final JVar decl = generateUnMarshallerFromString.body().decl( kmlClass, "jaxbRootElement", JExpr.cast( kmlClass, JExpr.invoke( localUnmarshaller, "unmarshal" ).arg( saxsource ) ) );
+    generateUnMarshallerFromString.body()._return( decl );
 	}
 
 	private void generateUnmarshalFileWithOptionalValidate(final ClassOutlineImpl cc, final JMethod generateValidate) {
@@ -911,25 +911,24 @@ public class CreateMarshalAndUnmarshal extends Command {
 		generateUnMarshallerFileFile.javadoc().add("automatically during unmarshalling and be checked if the object graph meets \n");
 		generateUnMarshallerFileFile.javadoc().add("all constraints defined in OGC's KML schema specification.");
 		generateUnMarshallerFileFile.javadoc().trimToSize();
+    generateUnMarshallerFileFile._throws( SAXException.class );
+    generateUnMarshallerFileFile._throws( JAXBException.class );
+    generateUnMarshallerFileFile._throws( ParserConfigurationException.class );
+    generateUnMarshallerFileFile._throws( FileNotFoundException.class );
+
 		final JVar fileunmarshallVar = generateUnMarshallerFileFile.param(JMod.FINAL, fileClass, "file");
 		final JVar validateVar = generateUnMarshallerFileFile.param(JMod.FINAL, boolean.class, "validate");
 
-		final JTryBlock tryBlock = generateUnMarshallerFileFile.body()._try();
-		final JVar localUnmarshallerFile = tryBlock.body().decl(jaxbUnmarshallerClass, "unmarshaller",
+    final JVar localUnmarshallerFile = generateUnMarshallerFileFile.body().decl( jaxbUnmarshallerClass, "unmarshaller",
 		    jaxbContextClass.boxify().staticInvoke("newInstance").arg(JExpr.direct("Kml.class")).invoke("createUnmarshaller"));
 
-		final JConditional ifBlockFilename = tryBlock.body()._if(validateVar.eq(JExpr.TRUE));
+    final JConditional ifBlockFilename = generateUnMarshallerFileFile.body()._if( validateVar.eq( JExpr.TRUE ) );
 		ifBlockFilename._then().add(kmlClass.boxify().staticInvoke(generateValidate).arg(localUnmarshallerFile));
 		
-		final JVar inputsource = tryBlock.body().decl(inputsourceClass, "input", JExpr._new(inputsourceClass).arg(JExpr._new(fileReaderClass).arg(fileunmarshallVar)));
-		final JVar saxsource = tryBlock.body().decl(saxsourceClass, "saxSource", JExpr._new(saxsourceClass).arg(JExpr._new(namespaceFilterXMLReaderclass).arg(validateVar)).arg(inputsource));
-		final JVar decl = tryBlock.body().decl(kmlClass, "jaxbRootElement", JExpr.cast(kmlClass, JExpr.invoke(localUnmarshallerFile, "unmarshal").arg(saxsource)));
-		tryBlock.body()._return(decl);
-		tryBlock._catch(saxExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		tryBlock._catch(parserConfigurationExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		tryBlock._catch(jaxbExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		tryBlock._catch(fileNotFoundExceptionClass.boxify()).body().directStatement("_x.printStackTrace();");
-		generateUnMarshallerFileFile.body()._return(JExpr._null());
+    final JVar inputsource = generateUnMarshallerFileFile.body().decl( inputsourceClass, "input", JExpr._new( inputsourceClass ).arg( JExpr._new( fileReaderClass ).arg( fileunmarshallVar ) ) );
+    final JVar saxsource = generateUnMarshallerFileFile.body().decl( saxsourceClass, "saxSource", JExpr._new( saxsourceClass ).arg( JExpr._new( namespaceFilterXMLReaderclass ).arg( validateVar ) ).arg( inputsource ) );
+    final JVar decl = generateUnMarshallerFileFile.body().decl( kmlClass, "jaxbRootElement", JExpr.cast( kmlClass, JExpr.invoke( localUnmarshallerFile, "unmarshal" ).arg( saxsource ) ) );
+    generateUnMarshallerFileFile.body()._return( decl );
 
 		final JMethod generateUnMarshallerFile = cc.implClass.method(JMod.PUBLIC | JMod.STATIC, kmlClass, "unmarshal");
 		generateUnMarshallerFile.param(JMod.FINAL, fileClass, "file");
@@ -939,6 +938,11 @@ public class CreateMarshalAndUnmarshal extends Command {
 		generateUnMarshallerFile.javadoc().add("unmarshal(final File, final boolean) \n");
 		generateUnMarshallerFile.javadoc().add("with the exception that the File object is not validated (boolean is false). ");
 		generateUnMarshallerFile.javadoc().trimToSize();
+    generateUnMarshallerFile._throws( SAXException.class );
+    generateUnMarshallerFile._throws( JAXBException.class );
+    generateUnMarshallerFile._throws( ParserConfigurationException.class );
+    generateUnMarshallerFile._throws( FileNotFoundException.class );
+
 		generateUnMarshallerFile.body()._return(
 		    kmlClass.boxify().staticInvoke(generateUnMarshallerFileFile).arg(fileunmarshallVar).arg(JExpr.FALSE));
 	}
